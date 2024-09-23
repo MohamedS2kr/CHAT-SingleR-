@@ -1,18 +1,26 @@
-﻿const connection = new signalR.HubConnectionBuilder()
+﻿"use strict";
+
+var connection = new signalR.HubConnectionBuilder()
     .withUrl("/chatHub")  // Hub endpoint defined in the server
     .build();
-connection.on("ReceiveMessage", function (fromuser, message) {
-    var msg = fromuser + ": " + message;
+connection.on("ReceiveMessage", function (user, message) {
+    
     var li = document.createElement("li");
-    li.txtcontect = msg;
-    $("#list").prepend(li);
+    document.getElementById("messageList").appendChild(li)
+    li.txtcontect = `${user} : ${message}`;
 });
 
-connection.start().catch(err => console.error(err));
+connection.start().then(function () {
+    document.getElementById("sendButton").disabled = false;
+}).catch(function (err) {
+    return console.error(err.toString());
+})
 
-$("#btnSend").on("click", function () {
-    var FromUser = $("#txtUser").val();
-    var Message = $("#txtMessage").val();
-
-    connection.invoke("SendMessage", FromUser, Message)
+document.getElementById("sendButton").addEventListener("click", function (event) {
+    var user = document.getElementById("userInput").value;
+    var message = document.getElementById("messageInput").value;
+    connection.invoke("SendMessage", user, message).catch(function (err) {
+        return console.error(err.toString());
+    })
+    event.preventDefault();
 });
